@@ -1,0 +1,42 @@
+<!-- Plugin Configuration File. Read more: https://plugins.jetbrains.com/docs/intellij/plugin-configuration-file.html -->
+<idea-plugin>
+    <id>dev.gaphunter.micrometertimersamplecompanion</id>
+    <name>Micrometer Timer Sample Companion</name>
+    <vendor>Gap Hunter Labs</vendor>
+    <description><![CDATA[
+        <p>Warning icon on a Micrometer <code>Timer.Sample sample =
+        Timer.start(...)</code> whose declaring method never calls
+        <code>.stop(...)</code> on that sample anywhere -- Micrometer's own
+        reference docs show the sample usage as exactly two steps, start
+        then stop, with no mention of a try/finally guard. A sample that's
+        started but never stopped never records its timing, and per a real
+        upstream Micrometer issue, can leak in long-task-timer bookkeeping
+        if this happens repeatedly.</p>
+        <p><b>100% static text/PSI analysis</b> -- matches method/variable
+        names by simple text, so it works whether the real Micrometer jar
+        is on the classpath or not. Java and Kotlin.</p>
+        <p>Stated honestly: v0.1 flags only the fully-unambiguous case --
+        <code>.stop(...)</code> is never called on the variable anywhere in
+        the method, not even inside a branch. If <code>.stop(...)</code> is
+        called on any path (even one that doesn't cover every branch), this
+        is NOT flagged -- true control-flow/exception-path analysis is out
+        of scope for v0.1.</p>
+        <p>Free. No license nags, no telemetry, no network calls.</p>
+    ]]></description>
+
+    <depends>com.intellij.modules.platform</depends>
+    <depends>com.intellij.java</depends>
+    <depends>org.jetbrains.kotlin</depends>
+
+    <extensions defaultExtensionNs="org.jetbrains.kotlin">
+        <supportsKotlinPluginMode supportsK1="true" supportsK2="true"/>
+    </extensions>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <codeInsight.lineMarkerProvider language="JAVA"
+            implementationClass="dev.gaphunter.micrometertimersamplecompanion.gutter.TimerSampleLineMarkerProvider"/>
+        <codeInsight.lineMarkerProvider language="kotlin"
+            implementationClass="dev.gaphunter.micrometertimersamplecompanion.gutter.TimerSampleLineMarkerProvider"/>
+        <notificationGroup id="Micrometer Timer Sample Companion" displayType="BALLOON"/>
+    </extensions>
+</idea-plugin>
